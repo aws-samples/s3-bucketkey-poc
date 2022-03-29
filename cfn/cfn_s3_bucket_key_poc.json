@@ -1,0 +1,520 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation Sample Template to demonstrate POC for KMS call reduction with usage of S3 Bucket Keys POC.",
+    "Parameters": {
+        "s3bucket1": {
+            "Type": "String",
+            "Default": "Nos3bucketkey",
+            "Description": " Please enter name of the Bucket . This would be bucket with AWS-KMS encryption enabled with No S3 Bucket Keys. Please Note : Template will create the new bucket for you",
+            "AllowedPattern": ".+"
+        },
+        "s3bucket2": {
+            "Type": "String",
+            "Default": "s3bucketkeyenabled",
+            "Description": "Please enter name of the Bucket . This would be bucket with AWS-KMS encryption enabled and S3 Bucket Keys ENABLED. Please Note : Template will create the bucket for you",
+            "AllowedPattern": ".+"
+        }
+    },
+    "Resources": {
+        "CFNIAMRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                }
+            }
+        },
+        "IAMRolePolicies": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "S3BucketKeyPOCpolicy",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "S3Access",
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:DeleteObject",
+                                "s3:PutObject",
+                                "s3:GetObject"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::GetAtt": [
+                                        "CFNS3Bucket",
+                                        "Arn"
+                                    ]
+                                },
+                                {
+                                    "Fn::GetAtt": [
+                                        "CFNS3Bucket2",
+                                        "Arn"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                    "Roles": [
+                        {
+                            "Ref": "CFNIAMRole"
+                        }
+                    ]
+                
+            }
+        },
+        "CFNS3Bucket": {
+            "Type": "AWS::S3::Bucket",
+            "DependsOn": "CFNKMSKey",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "s3bucket1"
+                },
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [
+                        {
+                            "ServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "aws:kms",
+                                "KMSMasterKeyID": {
+                                    "Fn::GetAtt": [
+                                        "CFNKMSKey",
+                                        "Arn"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "CFNS3BucketPolicy": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "CFNS3Bucket"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::GetAtt": [
+                                        "CFNIAMRole",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "s3:GetObject",
+                                "s3:PutObject",
+                                "s3:PutObjectAcl"
+                            ],
+                            "Resource": {
+                                "Fn::Join": [
+                                    "/",
+                                    [
+                                        {
+                                            "Fn::GetAtt": [
+                                                "CFNS3Bucket",
+                                                "Arn"
+                                            ]
+                                        },
+                                        "*"
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "CFNKMSKey": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMSCloudTrailTest",
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Id": "KMSCloudTrailTestID",
+                    "Statement": [
+                        {
+                            "Sid": "Enable IAM User Permissions",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Join": [
+                                        ":",
+                                        [
+                                            "arn:aws:iam:",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            "root"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow administration of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::GetAtt": [
+                                        "CFNIAMRole",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Create*",
+                                "kms:Describe*",
+                                "kms:Enable*",
+                                "kms:List*",
+                                "kms:Put*",
+                                "kms:Update*",
+                                "kms:Revoke*",
+                                "kms:Disable*",
+                                "kms:Get*",
+                                "kms:Delete*",
+                                "kms:ScheduleKeyDeletion",
+                                "kms:CancelKeyDeletion"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow use of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::GetAtt": [
+                                        "CFNIAMRole",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Encrypt",
+                                "kms:Decrypt",
+                                "kms:ReEncrypt*",
+                                "kms:GenerateDataKey*",
+                                "kms:DescribeKey"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                }
+            }
+        },
+        "CFNS3Bucket2": {
+            "Type": "AWS::S3::Bucket",
+            "DependsOn": "CFNKMSKey2",
+            "Properties": {
+                "BucketName": {
+                    "Ref": "s3bucket2"
+                },
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [
+                        {
+                            "ServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "aws:kms",
+                                "KMSMasterKeyID": {
+                                    "Fn::GetAtt": [
+                                        "CFNKMSKey2",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "BucketKeyEnabled": true
+                        }
+                    ]
+                }
+            }
+        },
+        "CFNS3BucketPolicy2": {
+            "Type": "AWS::S3::BucketPolicy",
+            "Properties": {
+                "Bucket": {
+                    "Ref": "CFNS3Bucket2"
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::GetAtt": [
+                                        "CFNIAMRole",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "s3:GetObject",
+                                "s3:PutObject",
+                                "s3:PutObjectAcl"
+                            ],
+                            "Resource": {
+                                "Fn::Join": [
+                                    "/",
+                                    [
+                                        {
+                                            "Fn::GetAtt": [
+                                                "CFNS3Bucket2",
+                                                "Arn"
+                                            ]
+                                        },
+                                        "*"
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "CFNKMSKey2": {
+            "Type": "AWS::KMS::Key",
+            "Properties": {
+                "Description": "KMSCloudTrailTest",
+                "KeyPolicy": {
+                    "Version": "2012-10-17",
+                    "Id": "KMSCloudTrailTestID",
+                    "Statement": [
+                        {
+                            "Sid": "Enable IAM User Permissions",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::Join": [
+                                        ":",
+                                        [
+                                            "arn:aws:iam:",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            "root"
+                                        ]
+                                    ]
+                                }
+                            },
+                            "Action": "kms:*",
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow administration of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::GetAtt": [
+                                        "CFNIAMRole",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Create*",
+                                "kms:Describe*",
+                                "kms:Enable*",
+                                "kms:List*",
+                                "kms:Put*",
+                                "kms:Update*",
+                                "kms:Revoke*",
+                                "kms:Disable*",
+                                "kms:Get*",
+                                "kms:Delete*",
+                                "kms:ScheduleKeyDeletion",
+                                "kms:CancelKeyDeletion"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "Allow use of the key",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Fn::GetAtt": [
+                                        "CFNIAMRole",
+                                        "Arn"
+                                    ]
+                                }
+                            },
+                            "Action": [
+                                "kms:Encrypt",
+                                "kms:Decrypt",
+                                "kms:ReEncrypt*",
+                                "kms:GenerateDataKey*",
+                                "kms:DescribeKey"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                }
+            }
+        },
+        "MyLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "FunctionName": "s3_bucket_test_simulator",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "CFNIAMRole",
+                        "Arn"
+                    ]
+                },
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "import boto3",
+                                "import time",
+                                "import os",
+                                "from botocore.config import Config",
+                                "import csv",
+                                "import datetime",
+                                "import random",
+                                "",
+                                "",
+                                "def lambda_handler(event, context):",
+                                "    s3_bucket_1=os.environ['s3_bucket_1']",
+                                "    s3_bucket_2=os.environ['s3_bucket_2']",
+                                "    upload_file_count=50",
+                                "    download_file_count=100",
+                                "    create_tmp_file()",
+                                "    process(s3_bucket_1,upload_file_count,download_file_count)",
+                                "    process(s3_bucket_2,upload_file_count,download_file_count)",
+                                "",
+                                "def process(s3_bucket, upload_file_count, download_file_count):",
+                                "    s3 = boto3.client('s3')",
+                                "    upload_file(s3, s3_bucket,upload_file_count)",
+                                "    download_file(s3, s3_bucket,download_file_count)",
+                                "",
+                                "",
+                                "def create_tmp_file():",
+                                "    try:",
+                                "        file_full_path = \"/tmp/tripdata.csv\"",
+                                "        print(\"Generating File -->{}\".format(file_full_path))",
+                                "        f = open(file_full_path, \"w\")",
+                                "        f.write(\"Trip1,trip2,trip3,trip\")",
+                                "        for i in range(10):",
+                                "            str_to_print=\"{},{},{},{}\".format(i, i+1, i+2, i+3)",
+                                "            f.write(str_to_print)",
+                                "        f.close()",
+                                "    except IOError:",
+                                "        print(\"I/O error {}\".format(IOError))",
+                                "    finally:",
+                                "        print(\"process completed\")",
+                                "",
+                                "",
+                                "def download_file(s3, bucket_name, file_count):",
+                                "    for i in range(file_count):",
+                                "        print(i)",
+                                "        file_to_download = \"tripdata_{}.csv\".format(",
+                                "            random.randrange(1, 10))",
+                                "        print(\"Downloading File -->{}\".format(file_to_download))",
+                                "        file_to_download_tmp=\"/tmp/{}\".format(file_to_download)",
+                                "        with open(file_to_download_tmp, 'wb') as f:",
+                                "            s3.download_fileobj(bucket_name, file_to_download, f)",
+                                "",
+                                "",
+                                "def upload_file(s3,bucket_name,file_count):",
+                                "    count = 1",
+                                "    print(bucket_name)",
+                                "    # for i in range(random.randrange(start_range,end_range)):",
+                                "    for i in range(file_count):",
+                                "        file_name = \"/tmp/tripdata.csv\"",
+                                "        file_to_upload = \"tripdata_{}.csv\".format(i)",
+                                "        print(\"Uploading File -->{}\".format(file_to_upload))",
+                                "        with open(file_name, \"rb\") as f:",
+                                "            s3.upload_fileobj(f, bucket_name, file_to_upload)",
+                                "        count = count+1",
+                                "        if count > 10:",
+                                "            count = 1",
+                                "",
+                            ]
+                        ]
+                    }
+                },
+                "Environment": {
+                    "Variables": {
+                        "s3_bucket_1": {
+                            "Ref": "CFNS3Bucket"
+                        },
+                        "s3_bucket_2": {
+                            "Ref": "CFNS3Bucket2"
+                        }
+                    }
+                },
+                "Runtime": "python3.6",
+                "Timeout": 600,
+                "Handler": "index.lambda_handler",
+                "MemorySize": 512
+            }
+        }
+    },
+    "Outputs": {
+        "S3BUCKETAWSKMS": {
+            "Value": {
+                "Ref": "CFNS3Bucket"
+            },
+            "Description": "S3 Bucket with NO S3 Bucket Keys."
+        },
+        "S3BUCKETAWSKMS2": {
+            "Value": {
+                "Ref": "CFNS3Bucket2"
+            },
+            "Description": "S3 Bucket with S3 Bucket Keys ENABLED."
+        },
+        "KMSKeyARN1": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CFNKMSKey",
+                    "Arn"
+                ]
+            },
+            "Description": "KMS key ARN used for encrypting S3 bucket with NO S3 Bucket Keys",
+        },
+        "KMSKeyARN2": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CFNKMSKey2",
+                    "Arn"
+                ]
+            },
+            "Description": "KMS key ARN used for encrypting S3 bucket with S3 Bucket Keys ENABLED",
+        },
+        "CFNIAMRoleOut": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "CFNIAMRole",
+                    "Arn"
+                ]
+            }
+        },
+        "LambdaFnOut": {
+            "Value": {
+                "Ref": "MyLambdaFunction"
+            },
+            "Description": "Lambda function to generate traffic on both buckets "
+        }
+    }
+}
