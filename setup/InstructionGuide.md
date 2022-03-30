@@ -141,7 +141,8 @@ TBLPROPERTIES (
   'projection.timestamp.type'='date', 
   'storage.location.template'='s3://<bucket>/AWSLogs/<account-id>/CloudTrail/<aws-region>/${timestamp}')
 ```
-### 10. Run the Lambda function to generate the traffic to S3 Bucket which intern will generate KMS API calls.
+### 10. Run the Lambda function to upload 50 files and download 100 fiels to both S3 Buckets
+
 Go to Cloudformation --> Stacks--> Select S3 Bucket Key POC stack--> Resource--> Lambda function
 
 <p align="center">
