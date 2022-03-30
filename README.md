@@ -10,12 +10,11 @@ Amazon S3 Bucket Keys reduce the cost of Amazon S3 server-side encryption using 
 
 # Setup to run POC
 
-- Run the  [Cloud Formation template](cfn/cfn_s3_bucket_key_poc.json)
-- Following the instruction as in [S3BucketKeyPOC_CFN_instruction](setup/S3BucketKeyPOC_Instruction.pdf) 
+- Follow the [Instruction Setup Guide](setup/S3BucketKeyPOC_Instruction.pdf) 
 
 # Workflow
-- Cloudformation template will create all the necessary required infrastructure as demonstrated the architecture diagram below. It will create two S3 Buckets. Each bucket is encrypted with SSE-KMS with unique KMS key. First Bucket with Bucket Key Disabled while Second Bucket with S3 Bucket Key Enabled. It will also create Lambda function to generate the traffic in both of these buckets.
-- Once the cloudformation template creates the infrastructure, you run the lambda function to generate the traffic. Lambda function uploading 50 files and downloading 100 files to both of these S3 buckets. Once the traffic is generated then you can analyze the count of KMS API call for each unique KMS Key from Amazon S3 to AWS KMS using CloudTrail and Amazon Athena as [Instruction Guide ](setup/S3BucketKeyPOC_Instruction.pdf).
+- Cloudformation template will create all the necessary required infrastructure as demonstrated in the architecture diagram below. It will create two S3 Buckets. Each bucket is encrypted with SSE-KMS with unique KMS key. First Bucket with Bucket Key Disabled while Second Bucket with S3 Bucket Key Enabled. It will also create Lambda function to generate the traffic in both of these buckets.
+- Once the cloudformation template creates the infrastructure, you run the lambda function to generate the traffic. Lambda function uploades 50 files and downloading 100 files to both of these S3 buckets. Once the traffic is generated then you can analyze the count of KMS API call for each unique KMS Key from Amazon S3 to AWS KMS using CloudTrail and Amazon Athena as [Instruction Setup Guide ](setup/S3BucketKeyPOC_Instruction.pdf).
 - You will observe KMS key with S3 Bucket Key Enabled makes significantly less KMS API calls (up to 99% less).
  
 
