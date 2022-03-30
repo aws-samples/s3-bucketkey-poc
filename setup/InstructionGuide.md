@@ -1,4 +1,4 @@
-# S3 Bucket Key POC Setup Instruction Guide
+# S3 Bucket Key POC setup guide
 ## Phase 1: Create the Infrastructure Using CloudFormation template
 ### 1. Clone the Repository
  Clone the **s3-bucketkey-poc** github repository to your computer using the following command 
