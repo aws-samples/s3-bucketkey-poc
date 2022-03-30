@@ -205,7 +205,7 @@ Empty both the S3 buckets that were created as part of Step-3
 3.	In the stack details pane, choose Delete.
 4.	Select Delete stack when prompted.
 ###	 3. Delete the CloudTrail created 
-If you have created CloudTrail specifically for this solution, you can delete the CloudTrail by following the instructions [provided here](.
+If you have created CloudTrail specifically for this solution, you can delete the CloudTrail by following the [instructions here](
 https://docs.aws.amazon.com/awsCloudTrail/latest/userguide/CloudTrail-delete-trails-console.html)
 ###	 4. Drop the Amazon Athena table
 1.	Log in to the Amazon Athena console and run the following drop table query: 
