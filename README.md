@@ -21,7 +21,7 @@ Amazon S3 Bucket Keys reduce the cost of Amazon S3 server-side encryption using 
 
 # Architecture
 <p align="center">
-  <img src="imgs/S3BucketKeyPOC.png" width="350" title="hover text">
+  <img src="imgs/S3BucketKeyPOC.png"  title="hover text">
 
 # Sample POC results
 #### Result of POC demonstrate that by uploading 50 file objects and by downloading 100 files objects on both SSE-KMS encrypted bucket,Bucket Key enabled bucket has 97.33% lower KMS API Calls. 
@@ -33,7 +33,7 @@ S3 Bucket with Bucket Key Disabled made 150 KMS API calls
 In this example there is 97.33% reduction in KMS API calls.
 
 <p align="center">
-  <img src="imgs/S3BucketKeyPOCResult.PNG" width="500" title="hover text">
+  <img src="imgs/S3BucketKeyPOCResult.PNG"  title="hover text">
 
 
 ``
