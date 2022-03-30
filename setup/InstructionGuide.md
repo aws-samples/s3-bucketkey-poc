@@ -56,7 +56,7 @@ Observe S3 Bucket Key is **Enabled** as shown in diagram below
 <p align="center">
   <img src="../imgs/step_7_4.png"  title="hover text">
 
-## Phase 2: Generate and analyze the S3 to AWS-KMS traffic
+## Phase 2: Analyze the KMS API call traffic
 Now we have created all the Infrastructure we will enable the CloudTrail and Amazon Athena. Generate the traffic to both the S3 Buckets using Lambda function and Analyze the KMS API calls using Athena.
 
 ### 8. Enable AWS CloudTrail 
