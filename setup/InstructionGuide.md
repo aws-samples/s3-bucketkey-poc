@@ -176,7 +176,7 @@ SELECT
           AND timestamp between '2021/04/01' and '2022/12/31'
           AND eventname in ('Decrypt','Encrypt','GenerateDataKey')
          AND json_extract(json_extract(requestparameters , '$.encryptionContext'),'$.aws:s3:arn') is not null 
-AND resources[1].arn IN (KMSKeyARN1-Value ',’ KMSKeyARN2-value’)
+AND resources[1].arn IN ('KMSKeyARN1-Value','KMSKeyARN2-value')
   GROUP BY resources[1].arn
   ORDER BY  key_arn,count desc
 ```
@@ -189,6 +189,43 @@ In this example result shows there is **97.33%** reduction in KMS API calls with
 
 <p align="center">
   <img src="../imgs/step_10_4.png"  title="hover text">
+
+### 12. See the difference of encryption context in CloudTrail 
+
+**S3 bucket with NO S3 Bucket Keys enabled**
+Go to Athena query editor and run the following query. Replace the value for  **KMSKeyARN1-Value** generated from Cloud formation template. 
+```
+SELECT 
+           requestparameters
+  FROM cloudtrail_logs_region
+  WHERE eventsource='kms.amazonaws.com'
+          AND eventname in ('Decrypt','Encrypt','GenerateDataKey')
+         AND json_extract(json_extract(requestparameters , '$.encryptionContext'),'$.aws:s3:arn') is not null 
+AND resources[1].arn IN ('KMSKeyARN1-value')
+limit 10
+```
+**Result Show demonstrate that CloudTrail events logs Encryption context at S3 object ARN**
+
+<p align="center">
+  <img src="../imgs/step_12_a.PNG"  title="hover text">
+
+
+**S3 bucket with S3 Bucket Keys enabled**
+Go to Athena query editor and run the following query. Replace the value for **KMSKeyARN2-Value**  generated from Cloud formation template. 
+```
+SELECT 
+           requestparameters
+  FROM cloudtrail_logs_region
+  WHERE eventsource='kms.amazonaws.com'
+          AND eventname in ('Decrypt','Encrypt','GenerateDataKey')
+         AND json_extract(json_extract(requestparameters , '$.encryptionContext'),'$.aws:s3:arn') is not null 
+AND resources[1].arn IN ('KMSKeyARN2-value')
+limit 10
+```
+**Result Show demonstrate that CloudTrail events logs Encryption context at S3 bucket ARN**
+
+<p align="center">
+  <img src="../imgs/step_12_b.PNG"  title="hover text">
 
 ## Phase 3: Clean Up 
 ### 1. Empty S3 Buckets 

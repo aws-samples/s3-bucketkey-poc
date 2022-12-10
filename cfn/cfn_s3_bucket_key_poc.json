@@ -4,13 +4,13 @@
     "Parameters": {
         "s3bucket1": {
             "Type": "String",
-            "Default": "Nos3bucketkey",
+            "Default": "s3bucket1",
             "Description": " Please enter name of the Bucket . This would be bucket with AWS-KMS encryption enabled with No S3 Bucket Keys. Please Note : Template will create the new bucket for you",
             "AllowedPattern": ".+"
         },
         "s3bucket2": {
             "Type": "String",
-            "Default": "s3bucketkeyenabled",
+            "Default": "s3bucket2",
             "Description": "Please enter name of the Bucket . This would be bucket with AWS-KMS encryption enabled and S3 Bucket Keys ENABLED. Please Note : Template will create the bucket for you",
             "AllowedPattern": ".+"
         }
@@ -464,7 +464,7 @@
                         }
                     }
                 },
-                "Runtime": "python3.6",
+                "Runtime": "python3.9",
                 "Timeout": 600,
                 "Handler": "index.lambda_handler",
                 "MemorySize": 512
